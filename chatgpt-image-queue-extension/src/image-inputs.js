@@ -35,10 +35,26 @@ window.CGPTIQ = window.CGPTIQ || {};
 
   async function uploadForPrompt(promptIndex) {
     const file = getFileForPrompt(promptIndex);
-    if (!file) return { uploaded: false, name: "" };
+    if (!file) return { uploaded: false, name: "", mode: state.mode, fileIndex: -1 };
 
     await uploadImageFile(file);
-    return { uploaded: true, name: file.webkitRelativePath || file.name };
+    return {
+      uploaded: true,
+      name: file.webkitRelativePath || file.name,
+      mode: state.mode,
+      fileIndex: state.mode === "same" ? 0 : promptIndex
+    };
+  }
+
+  function buildImagePromptInstruction(uploadResult) {
+    if (!uploadResult?.uploaded) return "";
+    if (uploadResult.mode === "same") {
+      return "Dựa trên ảnh tham chiếu vừa tải lên, hãy áp dụng yêu cầu sau cho ảnh đó:";
+    }
+    if (uploadResult.mode === "sequence") {
+      return `Dựa trên ảnh vừa tải lên cho lệnh này (${uploadResult.name}), hãy áp dụng yêu cầu sau cho ảnh đó:`;
+    }
+    return "Dựa trên ảnh vừa tải lên, hãy áp dụng yêu cầu sau:";
   }
 
   window.CGPTIQ.images = {
@@ -46,6 +62,7 @@ window.CGPTIQ = window.CGPTIQ || {};
     setFiles,
     setMode,
     state,
+    buildImagePromptInstruction,
     uploadForPrompt
   };
 })();

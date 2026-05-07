@@ -169,6 +169,7 @@ window.CGPTIQ = window.CGPTIQ || {};
   async function uploadImageFile(file) {
     if (!file) return true;
 
+    const beforeCount = countComposerAttachments();
     let fileInput = findComposerFileInput();
     if (!fileInput) {
       await openUploadMenu();
@@ -179,19 +180,21 @@ window.CGPTIQ = window.CGPTIQ || {};
     try {
       const transfer = new DataTransfer();
       transfer.items.add(file);
+      fileInput.value = "";
       fileInput.files = transfer.files;
       fileInput.dispatchEvent(new Event("input", { bubbles: true }));
       fileInput.dispatchEvent(new Event("change", { bubbles: true }));
     } catch {
       return pasteImageFile(file);
     }
-    await sleep(1200);
+    await waitForAttachmentReady(file, beforeCount);
     return true;
   }
 
   async function pasteImageFile(file) {
     const input = getComposerInput();
     const target = input || getComposerContainer() || document.body;
+    const beforeCount = countComposerAttachments();
     const transfer = new DataTransfer();
     transfer.items.add(file);
     const pasteEvent = new ClipboardEvent("paste", {
@@ -202,8 +205,32 @@ window.CGPTIQ = window.CGPTIQ || {};
 
     target.focus?.();
     target.dispatchEvent(pasteEvent);
-    await sleep(1200);
+    await waitForAttachmentReady(file, beforeCount);
     return true;
+  }
+
+  function countComposerAttachments() {
+    const composer = getComposerContainer() || document;
+    return [
+      ...composer.querySelectorAll("img, [data-testid*='attachment'], [data-testid*='file'], [aria-label*='image' i], [aria-label*='ảnh' i]")
+    ].filter((element) => visible(element) && !isOwnPanelElement(element)).length;
+  }
+
+  async function waitForAttachmentReady(file, beforeCount, timeoutMs = 12000) {
+    const started = Date.now();
+    const fileName = file.name.toLowerCase();
+    while (Date.now() - started < timeoutMs) {
+      const composer = getComposerContainer() || document;
+      const text = textOf(composer).toLowerCase();
+      const count = countComposerAttachments();
+      if (count > beforeCount || text.includes(fileName)) {
+        await sleep(600);
+        return true;
+      }
+      await sleep(250);
+    }
+    await sleep(1000);
+    return false;
   }
 
   async function ensureImageMode() {
@@ -337,8 +364,8 @@ window.CGPTIQ = window.CGPTIQ || {};
     return false;
   }
 
-  async function submitPrompt(prompt) {
-    const imageModeReady = await ensureImageMode();
+  async function submitPrompt(prompt, options = {}) {
+    const imageModeReady = options.skipImageMode ? true : await ensureImageMode();
     const finalPrompt = imageModeReady || /^create an image/i.test(prompt) ? prompt : `Create an image:\n${prompt}`;
     await sleep(300);
 

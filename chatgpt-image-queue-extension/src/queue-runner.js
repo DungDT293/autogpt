@@ -40,6 +40,13 @@ window.CGPTIQ = window.CGPTIQ || {};
     return settings.ratio === "auto" ? prompt : applyRatioFallback(prompt, settings.ratio);
   }
 
+  function applyImageInstruction(prompt, uploadResult) {
+    const instruction = images.buildImagePromptInstruction(uploadResult);
+    if (!instruction) return prompt;
+    if (/ảnh vừa tải lên|ảnh tham chiếu|attached image|reference image/i.test(prompt)) return prompt;
+    return `${instruction}\n${prompt}`;
+  }
+
   async function runQueue(settings, callbacks) {
     if (state.running) return;
 
@@ -83,14 +90,17 @@ window.CGPTIQ = window.CGPTIQ || {};
         if (state.stop) break;
 
         state.index = i;
-        const prompt = buildPrompt(prompts[i], settings);
         const uploadResult = await images.uploadForPrompt(i);
         if (uploadResult.uploaded) {
           callbacks.setStatus(`Đã tải ảnh cho lệnh ${i + 1}: ${uploadResult.name}`);
           await sleep(600);
+        } else if (images.state.mode === "sequence" && images.state.files.length) {
+          callbacks.setStatus(`Không có ảnh tương ứng cho lệnh ${i + 1}. Sẽ gửi prompt không kèm ảnh.`);
+          await sleep(600);
         }
+        const prompt = applyImageInstruction(buildPrompt(prompts[i], settings), uploadResult);
         callbacks.setStatus(`Đang gửi ${i + 1}/${prompts.length}:\n${prompt}`);
-        await submitPrompt(prompt);
+        await submitPrompt(prompt, { skipImageMode: uploadResult.uploaded });
 
         if (i < prompts.length - 1) {
           callbacks.setStatus(`Đã gửi ${i + 1}/${prompts.length}. Chờ ${settings.delaySeconds}s trước prompt tiếp theo.`);

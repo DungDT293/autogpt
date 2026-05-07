@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT Image Prompt Queue",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Queue prompts and submit them sequentially in ChatGPT image mode.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
