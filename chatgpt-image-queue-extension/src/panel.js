@@ -5,7 +5,19 @@ window.CGPTIQ = window.CGPTIQ || {};
   const { loadSettings, saveSettings } = window.CGPTIQ.storage;
   const queue = window.CGPTIQ.queue;
 
+  function parsePromptText(raw) {
+    return queue.parsePrompts(raw);
+  }
+
+  function serializePromptItems() {
+    return [...document.querySelectorAll(".cgptiq-prompt-text")]
+      .map((field) => field.value.trim())
+      .filter(Boolean)
+      .join("\n---\n");
+  }
+
   function getSettingsFromPanel() {
+    syncPromptItemsToHidden();
     return {
       prompts: document.querySelector("#cgptiq-prompts").value,
       ratio: document.querySelector("#cgptiq-ratio").value,
@@ -42,9 +54,18 @@ window.CGPTIQ = window.CGPTIQ || {};
         </div>
       </div>
       <div class="cgptiq-body">
-        <div class="cgptiq-row">
-          <label for="cgptiq-prompts">Prompt, mỗi dòng một ảnh</label>
-          <textarea id="cgptiq-prompts" spellcheck="false" placeholder="Prompt 1&#10;Prompt 2&#10;Prompt 3"></textarea>
+        <div class="cgptiq-prompt-editor">
+          <input id="cgptiq-prompts" type="hidden">
+          <div class="cgptiq-editor-head">
+            <label for="cgptiq-paste">Prompt</label>
+            <span id="cgptiq-prompt-count">0 lệnh</span>
+          </div>
+          <textarea id="cgptiq-paste" spellcheck="false" placeholder="Dán danh sách prompt vào đây. Mỗi dòng là một ảnh, hoặc ngăn cách prompt nhiều dòng bằng ---"></textarea>
+          <div class="cgptiq-prompt-actions">
+            <button id="cgptiq-add-prompt" type="button">Thêm lệnh</button>
+            <button id="cgptiq-clear-prompts" type="button">Xóa rỗng</button>
+          </div>
+          <div id="cgptiq-prompt-list" class="cgptiq-prompt-list" aria-label="Danh sách prompt"></div>
         </div>
         <div class="cgptiq-grid">
           <div class="cgptiq-row">
@@ -91,16 +112,125 @@ window.CGPTIQ = window.CGPTIQ || {};
 
   function fillSettings(settings) {
     document.querySelector("#cgptiq-prompts").value = settings.prompts;
+    document.querySelector("#cgptiq-paste").value = settings.prompts;
+    renderPromptList(parsePromptText(settings.prompts));
     document.querySelector("#cgptiq-ratio").value = settings.ratio;
     document.querySelector("#cgptiq-speed").value = settings.speed;
     document.querySelector("#cgptiq-delay").value = settings.delaySeconds;
     document.querySelector("#cgptiq-start-index").value = settings.startIndex;
   }
 
+  function syncPromptItemsToHidden() {
+    const hidden = document.querySelector("#cgptiq-prompts");
+    if (!hidden) return;
+    hidden.value = serializePromptItems();
+  }
+
+  function autoSizePromptField(field) {
+    field.style.height = "auto";
+    field.style.height = `${Math.min(Math.max(field.scrollHeight, 44), 160)}px`;
+  }
+
+  function updatePromptCount() {
+    const count = document.querySelectorAll(".cgptiq-prompt-item").length;
+    const label = document.querySelector("#cgptiq-prompt-count");
+    if (label) label.textContent = `${count} lệnh`;
+  }
+
+  function renderPromptList(prompts) {
+    const list = document.querySelector("#cgptiq-prompt-list");
+    if (!list) return;
+
+    list.innerHTML = "";
+    prompts.forEach((prompt, index) => {
+      list.appendChild(createPromptItem(prompt, index));
+    });
+    updatePromptCount();
+    syncPromptItemsToHidden();
+  }
+
+  function renumberPromptItems() {
+    document.querySelectorAll(".cgptiq-prompt-index").forEach((button, index) => {
+      button.textContent = String(index + 1);
+      button.title = `Sửa prompt ${index + 1}`;
+    });
+    updatePromptCount();
+  }
+
+  function createPromptItem(prompt, index) {
+    const item = document.createElement("div");
+    item.className = "cgptiq-prompt-item";
+
+    const indexButton = document.createElement("button");
+    indexButton.className = "cgptiq-prompt-index";
+    indexButton.type = "button";
+    indexButton.textContent = String(index + 1);
+    indexButton.title = `Sửa prompt ${index + 1}`;
+
+    const field = document.createElement("textarea");
+    field.className = "cgptiq-prompt-text";
+    field.spellcheck = false;
+    field.value = prompt;
+
+    const removeButton = document.createElement("button");
+    removeButton.className = "cgptiq-prompt-remove";
+    removeButton.type = "button";
+    removeButton.textContent = "x";
+    removeButton.title = "Xóa prompt";
+
+    indexButton.addEventListener("click", () => {
+      field.focus();
+      field.select();
+    });
+    field.addEventListener("input", () => {
+      autoSizePromptField(field);
+      syncPromptItemsToHidden();
+      document.querySelector("#cgptiq-paste").value = document.querySelector("#cgptiq-prompts").value;
+      saveSettings(getSettingsFromPanel());
+    });
+    removeButton.addEventListener("click", () => {
+      item.remove();
+      renumberPromptItems();
+      syncPromptItemsToHidden();
+      document.querySelector("#cgptiq-paste").value = document.querySelector("#cgptiq-prompts").value;
+      saveSettings(getSettingsFromPanel());
+    });
+
+    item.append(indexButton, field, removeButton);
+    requestAnimationFrame(() => autoSizePromptField(field));
+    return item;
+  }
+
+  function appendPrompt(prompt = "") {
+    const list = document.querySelector("#cgptiq-prompt-list");
+    const item = createPromptItem(prompt, list.children.length);
+    list.appendChild(item);
+    renumberPromptItems();
+    syncPromptItemsToHidden();
+    document.querySelector("#cgptiq-paste").value = document.querySelector("#cgptiq-prompts").value;
+    const field = item.querySelector(".cgptiq-prompt-text");
+    field.focus();
+  }
+
   function bindPanelEvents(panel) {
-    panel.querySelectorAll("textarea, input, select").forEach((field) => {
+    panel.querySelectorAll("input, select").forEach((field) => {
       field.addEventListener("change", () => saveSettings(getSettingsFromPanel()));
       field.addEventListener("input", () => saveSettings(getSettingsFromPanel()));
+    });
+
+    document.querySelector("#cgptiq-paste").addEventListener("input", (event) => {
+      const prompts = parsePromptText(event.target.value);
+      renderPromptList(prompts);
+      saveSettings(getSettingsFromPanel());
+    });
+    document.querySelector("#cgptiq-add-prompt").addEventListener("click", () => {
+      appendPrompt("");
+      saveSettings(getSettingsFromPanel());
+    });
+    document.querySelector("#cgptiq-clear-prompts").addEventListener("click", () => {
+      document.querySelector("#cgptiq-paste").value = "";
+      renderPromptList([]);
+      saveSettings(getSettingsFromPanel());
     });
 
     document.querySelector("#cgptiq-start").addEventListener("click", async () => {
