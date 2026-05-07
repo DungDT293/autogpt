@@ -2,6 +2,11 @@
 
 Chrome extension Manifest V3 để nhập nhiều prompt tạo ảnh trên ChatGPT và gửi lần lượt.
 
+## Phiên bản
+
+- `0.1.0`: bản ổn định đầu tiên, tag fallback `stable-chatgpt-image-queue-v0.1.0`.
+- `0.2.0`: thiết kế lại prompt editor, tự tách prompt thành danh sách có số thứ tự và cho sửa từng lệnh.
+
 ## Cài đặt
 
 1. Mở Chrome và vào `chrome://extensions`.
