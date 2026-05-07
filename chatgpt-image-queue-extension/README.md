@@ -18,7 +18,7 @@ Chrome extension Manifest V3 để nhập nhiều prompt tạo ảnh trên ChatG
 ## Cách dùng
 
 1. Panel `Image Prompt Queue` tự hiện ở góc phải trang ChatGPT.
-2. Nhập mỗi prompt trên một dòng. Nếu prompt cần nhiều dòng, ngăn cách các prompt bằng một dòng chỉ có `---`.
+2. Dán danh sách prompt; extension tự tách thành các lệnh có số thứ tự. Có thể dán dạng `1.`, `2.`, `-`, hoặc `*`; khi gửi extension tự bỏ ký hiệu đầu dòng. Nếu prompt cần nhiều dòng, ngăn cách các prompt bằng một dòng chỉ có `---`.
 3. Chọn tỉ lệ: `Tự động`, `Vuông 1:1`, `Chân dung 3:4`, `Tin 9:16`, `Ngang 4:3`, hoặc `Màn ảnh rộng 16:9`.
 4. Chọn chế độ tốc độ nếu cần: `Giữ hiện tại`, `Instant`, `Lâu hơn`, hoặc `Tự động`.
 5. Chọn thời gian chờ giữa các prompt rồi bấm `Chạy`.

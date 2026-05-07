@@ -117,7 +117,7 @@ window.CGPTIQ = window.CGPTIQ || {};
           <button id="cgptiq-stop" type="button" disabled>Dừng</button>
         </div>
         <div id="cgptiq-status" class="cgptiq-status">Sẵn sàng.</div>
-        <div class="cgptiq-small">Mẹo: dùng dòng riêng cho từng prompt. Nếu prompt nhiều dòng, ngăn cách bằng một dòng chỉ có ---.</div>
+        <div class="cgptiq-small">Mẹo: dán danh sách prompt, tool sẽ tự đánh số. Có thể dán dạng 1., 2., -, *; khi gửi tool tự bỏ ký hiệu đầu dòng. Prompt nhiều dòng thì ngăn cách bằng ---.</div>
       </div>
     `;
   }
