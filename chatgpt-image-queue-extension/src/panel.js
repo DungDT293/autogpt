@@ -6,7 +6,19 @@ window.CGPTIQ = window.CGPTIQ || {};
   const queue = window.CGPTIQ.queue;
 
   function parsePromptText(raw) {
-    return queue.parsePrompts(raw);
+    return queue.parsePrompts(raw)
+      .map((prompt) => prompt.replace(/^\s*(?:[-*]\s+|\d+[\.)]\s+)/, "").trim())
+      .filter(Boolean);
+  }
+
+  function formatPromptText(prompts) {
+    if (prompts.length <= 1) return prompts[0] || "";
+    return prompts.map((prompt, index) => {
+      const lines = prompt.split(/\r?\n/);
+      const [firstLine, ...rest] = lines;
+      const body = rest.map((line) => `   ${line}`).join("\n");
+      return body ? `${index + 1}. ${firstLine}\n${body}` : `${index + 1}. ${firstLine}`;
+    }).join("\n");
   }
 
   function serializePromptItems() {
@@ -112,8 +124,9 @@ window.CGPTIQ = window.CGPTIQ || {};
 
   function fillSettings(settings) {
     document.querySelector("#cgptiq-prompts").value = settings.prompts;
-    document.querySelector("#cgptiq-paste").value = settings.prompts;
-    renderPromptList(parsePromptText(settings.prompts));
+    const prompts = parsePromptText(settings.prompts);
+    document.querySelector("#cgptiq-paste").value = formatPromptText(prompts);
+    renderPromptList(prompts);
     document.querySelector("#cgptiq-ratio").value = settings.ratio;
     document.querySelector("#cgptiq-speed").value = settings.speed;
     document.querySelector("#cgptiq-delay").value = settings.delaySeconds;
@@ -185,14 +198,14 @@ window.CGPTIQ = window.CGPTIQ || {};
     field.addEventListener("input", () => {
       autoSizePromptField(field);
       syncPromptItemsToHidden();
-      document.querySelector("#cgptiq-paste").value = document.querySelector("#cgptiq-prompts").value;
+      document.querySelector("#cgptiq-paste").value = formatPromptText(parsePromptText(document.querySelector("#cgptiq-prompts").value));
       saveSettings(getSettingsFromPanel());
     });
     removeButton.addEventListener("click", () => {
       item.remove();
       renumberPromptItems();
       syncPromptItemsToHidden();
-      document.querySelector("#cgptiq-paste").value = document.querySelector("#cgptiq-prompts").value;
+      document.querySelector("#cgptiq-paste").value = formatPromptText(parsePromptText(document.querySelector("#cgptiq-prompts").value));
       saveSettings(getSettingsFromPanel());
     });
 
@@ -207,7 +220,7 @@ window.CGPTIQ = window.CGPTIQ || {};
     list.appendChild(item);
     renumberPromptItems();
     syncPromptItemsToHidden();
-    document.querySelector("#cgptiq-paste").value = document.querySelector("#cgptiq-prompts").value;
+    document.querySelector("#cgptiq-paste").value = formatPromptText(parsePromptText(document.querySelector("#cgptiq-prompts").value));
     const field = item.querySelector(".cgptiq-prompt-text");
     field.focus();
   }
@@ -222,6 +235,15 @@ window.CGPTIQ = window.CGPTIQ || {};
       const prompts = parsePromptText(event.target.value);
       renderPromptList(prompts);
       saveSettings(getSettingsFromPanel());
+    });
+    document.querySelector("#cgptiq-paste").addEventListener("paste", () => {
+      setTimeout(() => {
+        const pasteField = document.querySelector("#cgptiq-paste");
+        const prompts = parsePromptText(pasteField.value);
+        pasteField.value = formatPromptText(prompts);
+        renderPromptList(prompts);
+        saveSettings(getSettingsFromPanel());
+      }, 0);
     });
     document.querySelector("#cgptiq-add-prompt").addEventListener("click", () => {
       appendPrompt("");
