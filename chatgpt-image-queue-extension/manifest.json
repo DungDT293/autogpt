@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Image Prompt Queue",
-  "version": "0.3.2",
+  "name": "AutoGPT by Leon",
+  "version": "0.3.3",
   "description": "Queue prompts and submit them sequentially in ChatGPT image mode.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": ["https://chatgpt.com/*", "https://chat.openai.com/*"],
   "action": {
-    "default_title": "Image Prompt Queue",
+    "default_title": "AutoGPT by Leon",
     "default_popup": "popup.html"
   },
   "content_scripts": [

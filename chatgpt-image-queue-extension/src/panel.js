@@ -61,7 +61,7 @@ window.CGPTIQ = window.CGPTIQ || {};
   function panelTemplate() {
     return `
       <div class="cgptiq-header">
-        <div class="cgptiq-title">Image Prompt Queue</div>
+        <div class="cgptiq-title">AutoGPT by Leon</div>
         <div class="cgptiq-header-actions">
           <button id="cgptiq-collapse" type="button" title="Thu gọn">_</button>
           <button id="cgptiq-close" type="button" title="Ẩn panel">x</button>
