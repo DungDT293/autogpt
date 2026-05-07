@@ -4,6 +4,7 @@ window.CGPTIQ = window.CGPTIQ || {};
   const { panelId } = window.CGPTIQ.config;
   const { loadSettings, saveSettings } = window.CGPTIQ.storage;
   const queue = window.CGPTIQ.queue;
+  const images = window.CGPTIQ.images;
 
   function parsePromptText(raw) {
     return queue.parsePrompts(raw)
@@ -30,6 +31,7 @@ window.CGPTIQ = window.CGPTIQ || {};
 
   function getSettingsFromPanel() {
     syncPromptItemsToHidden();
+    images.setMode(document.querySelector("#cgptiq-image-mode").value);
     return {
       prompts: document.querySelector("#cgptiq-prompts").value,
       ratio: document.querySelector("#cgptiq-ratio").value,
@@ -78,6 +80,25 @@ window.CGPTIQ = window.CGPTIQ || {};
             <button id="cgptiq-clear-prompts" type="button">Xóa rỗng</button>
           </div>
           <div id="cgptiq-prompt-list" class="cgptiq-prompt-list" aria-label="Danh sách prompt"></div>
+        </div>
+        <div class="cgptiq-row">
+          <div class="cgptiq-editor-head">
+            <label for="cgptiq-image-mode">Ảnh tham chiếu</label>
+            <span id="cgptiq-image-count">0 ảnh</span>
+          </div>
+          <select id="cgptiq-image-mode">
+            <option value="none">Không upload ảnh</option>
+            <option value="same">Dùng 1 ảnh cho mọi prompt</option>
+            <option value="sequence">Mỗi prompt dùng 1 ảnh theo thứ tự</option>
+          </select>
+          <div class="cgptiq-image-actions">
+            <label class="cgptiq-file-button" for="cgptiq-image-files">Chọn ảnh</label>
+            <label class="cgptiq-file-button" for="cgptiq-image-folder">Chọn folder</label>
+            <button id="cgptiq-clear-images" type="button">Xóa ảnh</button>
+          </div>
+          <input id="cgptiq-image-files" class="cgptiq-file-input" type="file" accept="image/*" multiple>
+          <input id="cgptiq-image-folder" class="cgptiq-file-input" type="file" accept="image/*" webkitdirectory multiple>
+          <div id="cgptiq-image-preview" class="cgptiq-image-preview">Chưa chọn ảnh.</div>
         </div>
         <div class="cgptiq-grid">
           <div class="cgptiq-row">
@@ -254,6 +275,32 @@ window.CGPTIQ = window.CGPTIQ || {};
       renderPromptList([]);
       saveSettings(getSettingsFromPanel());
     });
+    document.querySelector("#cgptiq-image-mode").addEventListener("change", () => {
+      images.setMode(document.querySelector("#cgptiq-image-mode").value);
+      updateImageSummary();
+    });
+    document.querySelector("#cgptiq-image-files").addEventListener("change", (event) => {
+      images.setFiles(event.target.files);
+      if (images.state.files.length && images.state.mode === "none") {
+        document.querySelector("#cgptiq-image-mode").value = "same";
+        images.setMode("same");
+      }
+      updateImageSummary();
+    });
+    document.querySelector("#cgptiq-image-folder").addEventListener("change", (event) => {
+      images.setFiles(event.target.files);
+      if (images.state.files.length && images.state.mode === "none") {
+        document.querySelector("#cgptiq-image-mode").value = "sequence";
+        images.setMode("sequence");
+      }
+      updateImageSummary();
+    });
+    document.querySelector("#cgptiq-clear-images").addEventListener("click", () => {
+      images.clearFiles();
+      document.querySelector("#cgptiq-image-files").value = "";
+      document.querySelector("#cgptiq-image-folder").value = "";
+      updateImageSummary();
+    });
 
     document.querySelector("#cgptiq-start").addEventListener("click", async () => {
       const settings = getSettingsFromPanel();
@@ -274,6 +321,25 @@ window.CGPTIQ = window.CGPTIQ || {};
     document.querySelector("#cgptiq-close").addEventListener("click", () => {
       panel.remove();
     });
+  }
+
+  function updateImageSummary() {
+    const count = images.state.files.length;
+    const countLabel = document.querySelector("#cgptiq-image-count");
+    const preview = document.querySelector("#cgptiq-image-preview");
+    if (countLabel) countLabel.textContent = `${count} ảnh`;
+    if (!preview) return;
+
+    if (!count) {
+      preview.textContent = "Chưa chọn ảnh.";
+      return;
+    }
+
+    const names = images.state.files
+      .slice(0, 3)
+      .map((file) => file.webkitRelativePath || file.name);
+    const suffix = count > 3 ? `\n... và ${count - 3} ảnh khác` : "";
+    preview.textContent = `${names.join("\n")}${suffix}`;
   }
 
   function enableDrag(panel) {

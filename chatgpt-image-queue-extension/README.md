@@ -6,6 +6,7 @@ Chrome extension Manifest V3 để nhập nhiều prompt tạo ảnh trên ChatG
 
 - `0.1.0`: bản ổn định đầu tiên, tag fallback `stable-chatgpt-image-queue-v0.1.0`.
 - `0.2.0`: thiết kế lại prompt editor, tự tách prompt thành danh sách có số thứ tự và cho sửa từng lệnh.
+- `0.3.0`: thêm chọn ảnh hoặc folder ảnh, upload 1 ảnh cho mọi prompt hoặc ảnh theo thứ tự prompt.
 
 ## Cài đặt
 
@@ -21,7 +22,8 @@ Chrome extension Manifest V3 để nhập nhiều prompt tạo ảnh trên ChatG
 2. Dán danh sách prompt; extension tự tách thành các lệnh có số thứ tự. Có thể dán dạng `1.`, `2.`, `-`, hoặc `*`; khi gửi extension tự bỏ ký hiệu đầu dòng. Nếu prompt cần nhiều dòng, ngăn cách các prompt bằng một dòng chỉ có `---`.
 3. Chọn tỉ lệ: `Tự động`, `Vuông 1:1`, `Chân dung 3:4`, `Tin 9:16`, `Ngang 4:3`, hoặc `Màn ảnh rộng 16:9`.
 4. Chọn chế độ tốc độ nếu cần: `Giữ hiện tại`, `Instant`, `Lâu hơn`, hoặc `Tự động`.
-5. Chọn thời gian chờ giữa các prompt rồi bấm `Chạy`.
+5. Nếu cần ảnh tham chiếu, chọn `Chọn ảnh` hoặc `Chọn folder`, rồi chọn cách dùng ảnh.
+6. Chọn thời gian chờ giữa các prompt rồi bấm `Chạy`.
 
 ## Lưu ý
 
@@ -34,5 +36,6 @@ Giao diện ChatGPT có thể thay đổi theo thời gian, nên automation dùn
 - `src/dom-utils.js`: tiện ích DOM dùng chung.
 - `src/storage.js`: đọc/ghi cấu hình bằng `chrome.storage`.
 - `src/chatgpt-automation.js`: logic thao tác với UI ChatGPT như chọn tỉ lệ, nhập prompt, bấm gửi.
+- `src/image-inputs.js`: quản lý ảnh người dùng chọn và upload vào composer trước từng prompt.
 - `src/queue-runner.js`: chạy hàng đợi prompt, pause/resume/stop.
 - `src/panel.js`: tạo panel, bind nút, lấy dữ liệu từ form.

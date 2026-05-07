@@ -132,6 +132,80 @@ window.CGPTIQ = window.CGPTIQ || {};
     return null;
   }
 
+  function findComposerFileInput() {
+    const composer = getComposerContainer() || document;
+    return [...composer.querySelectorAll("input[type='file']"), ...document.querySelectorAll("input[type='file']")]
+      .filter((input) => !isOwnPanelElement(input))
+      .find((input) => /image|\*/i.test(input.accept || "") || input.multiple || input.type === "file");
+  }
+
+  async function openUploadMenu() {
+    const composer = getComposerContainer() || document;
+    const inputRect = getComposerInput()?.getBoundingClientRect();
+    const plusButton = queryButtons(composer).find((button) => {
+      const rect = button.getBoundingClientRect();
+      const label = elementLabel(button);
+      const text = textOf(button);
+      const isPlusLike = /\+|attach|đính kèm|upload|tải lên|add/i.test(label) || text === "+";
+      return isPlusLike &&
+        (!inputRect || (rect.left <= inputRect.left + 80 && rect.top >= inputRect.top - 20 && rect.bottom <= inputRect.bottom + 35));
+    });
+
+    if (!plusButton) return false;
+    clickElement(plusButton);
+    return true;
+  }
+
+  async function waitForComposerFileInput(timeoutMs = 5000) {
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      const input = findComposerFileInput();
+      if (input) return input;
+      await sleep(150);
+    }
+    return null;
+  }
+
+  async function uploadImageFile(file) {
+    if (!file) return true;
+
+    let fileInput = findComposerFileInput();
+    if (!fileInput) {
+      await openUploadMenu();
+      fileInput = await waitForComposerFileInput();
+    }
+    if (!fileInput) return pasteImageFile(file);
+
+    try {
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      fileInput.files = transfer.files;
+      fileInput.dispatchEvent(new Event("input", { bubbles: true }));
+      fileInput.dispatchEvent(new Event("change", { bubbles: true }));
+    } catch {
+      return pasteImageFile(file);
+    }
+    await sleep(1200);
+    return true;
+  }
+
+  async function pasteImageFile(file) {
+    const input = getComposerInput();
+    const target = input || getComposerContainer() || document.body;
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    const pasteEvent = new ClipboardEvent("paste", {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: transfer
+    });
+
+    target.focus?.();
+    target.dispatchEvent(pasteEvent);
+    await sleep(1200);
+    return true;
+  }
+
   async function ensureImageMode() {
     const promptInput = getComposerInput();
     const placeholder = promptInput?.getAttribute("placeholder") || "";
@@ -289,6 +363,7 @@ window.CGPTIQ = window.CGPTIQ || {};
     ensureImageMode,
     getComposerContainer,
     getComposerInput,
+    uploadImageFile,
     submitPrompt
   };
 })();

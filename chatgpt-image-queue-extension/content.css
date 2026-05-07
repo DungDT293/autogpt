@@ -119,6 +119,49 @@
   gap: 8px;
 }
 
+.cgptiq-image-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.cgptiq-file-input {
+  display: none;
+}
+
+#cgptiq-panel .cgptiq-file-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  color: #f7f7f8;
+  background: #343541;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+#cgptiq-panel .cgptiq-file-button:hover {
+  background: #40414f;
+}
+
+.cgptiq-image-preview {
+  min-height: 30px;
+  max-height: 76px;
+  overflow: auto;
+  padding: 7px 8px;
+  color: #c5c5d2;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
 .cgptiq-prompt-list {
   display: grid;
   gap: 7px;

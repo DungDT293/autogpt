@@ -4,6 +4,7 @@ window.CGPTIQ = window.CGPTIQ || {};
   const { ratioPromptSuffix, ratioValues } = window.CGPTIQ.config;
   const { sleep } = window.CGPTIQ.dom;
   const { chooseRatio, chooseSpeed, ensureImageMode, submitPrompt } = window.CGPTIQ.chatgpt;
+  const images = window.CGPTIQ.images;
 
   const state = {
     running: false,
@@ -83,6 +84,11 @@ window.CGPTIQ = window.CGPTIQ || {};
 
         state.index = i;
         const prompt = buildPrompt(prompts[i], settings);
+        const uploadResult = await images.uploadForPrompt(i);
+        if (uploadResult.uploaded) {
+          callbacks.setStatus(`Đã tải ảnh cho lệnh ${i + 1}: ${uploadResult.name}`);
+          await sleep(600);
+        }
         callbacks.setStatus(`Đang gửi ${i + 1}/${prompts.length}:\n${prompt}`);
         await submitPrompt(prompt);
 
