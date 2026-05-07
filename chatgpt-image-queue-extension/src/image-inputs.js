@@ -48,11 +48,8 @@ window.CGPTIQ = window.CGPTIQ || {};
 
   function buildImagePromptInstruction(uploadResult) {
     if (!uploadResult?.uploaded) return "";
-    if (uploadResult.mode === "same") {
+    if (uploadResult.mode === "same" || uploadResult.mode === "sequence") {
       return "Dựa trên ảnh tham chiếu vừa tải lên, hãy áp dụng yêu cầu sau cho ảnh đó:";
-    }
-    if (uploadResult.mode === "sequence") {
-      return `Dựa trên ảnh vừa tải lên cho lệnh này (${uploadResult.name}), hãy áp dụng yêu cầu sau cho ảnh đó:`;
     }
     return "Dựa trên ảnh vừa tải lên, hãy áp dụng yêu cầu sau:";
   }

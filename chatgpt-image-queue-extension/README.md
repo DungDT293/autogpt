@@ -8,6 +8,7 @@ Chrome extension Manifest V3 để nhập nhiều prompt tạo ảnh trên ChatG
 - `0.2.0`: thiết kế lại prompt editor, tự tách prompt thành danh sách có số thứ tự và cho sửa từng lệnh.
 - `0.3.0`: thêm chọn ảnh hoặc folder ảnh, upload 1 ảnh cho mọi prompt hoặc ảnh theo thứ tự prompt.
 - `0.3.1`: cải thiện upload folder theo thứ tự, chờ ảnh attach vào composer và tự thêm chỉ dẫn dùng ảnh vừa tải lên vào prompt.
+- `0.3.2`: đồng nhất câu dẫn ảnh giữa chế độ 1 ảnh và folder, tránh đưa tên file vào prompt.
 
 ## Cài đặt
 
