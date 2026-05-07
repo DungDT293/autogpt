@@ -46,6 +46,39 @@ window.CGPTIQ = window.CGPTIQ || {};
     if (status) status.textContent = message;
   }
 
+  function updateProgress(progress) {
+    const total = Math.max(0, Number(progress.total || 0));
+    const current = Math.max(0, Math.min(Number(progress.current || 0), total || 0));
+    const percent = total ? Math.round((current / total) * 100) : 0;
+    const fill = document.querySelector("#cgptiq-mini-progress-fill");
+    const text = document.querySelector("#cgptiq-mini-progress-text");
+    if (fill) fill.style.width = `${percent}%`;
+    if (text) text.textContent = total ? `${current}/${total} - ${progress.label || `${percent}%`}` : "Chưa chạy";
+  }
+
+  function playCompleteSound() {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
+    const context = new AudioContextClass();
+    const gain = context.createGain();
+    gain.connect(context.destination);
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 2.95);
+
+    [523.25, 659.25, 783.99, 1046.5].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, context.currentTime + index * 0.42);
+      oscillator.connect(gain);
+      oscillator.start(context.currentTime + index * 0.42);
+      oscillator.stop(context.currentTime + 2.9);
+    });
+
+    setTimeout(() => context.close(), 3200);
+  }
+
   function updateButtons() {
     const start = document.querySelector("#cgptiq-start");
     const pause = document.querySelector("#cgptiq-pause");
@@ -63,8 +96,17 @@ window.CGPTIQ = window.CGPTIQ || {};
       <div class="cgptiq-header">
         <div class="cgptiq-title">AutoGPT by Leon</div>
         <div class="cgptiq-header-actions">
-          <button id="cgptiq-collapse" type="button" title="Thu gọn">_</button>
-          <button id="cgptiq-close" type="button" title="Ẩn panel">x</button>
+          <button id="cgptiq-collapse" class="cgptiq-header-button" type="button" title="Thu gọn">Thu</button>
+          <button id="cgptiq-close" class="cgptiq-header-button" type="button" title="Ẩn panel">Ẩn</button>
+        </div>
+      </div>
+      <div class="cgptiq-mini-progress">
+        <div class="cgptiq-mini-progress-meta">
+          <span>Tiến trình</span>
+          <span id="cgptiq-mini-progress-text">Chưa chạy</span>
+        </div>
+        <div class="cgptiq-mini-progress-track">
+          <div id="cgptiq-mini-progress-fill" class="cgptiq-mini-progress-fill"></div>
         </div>
       </div>
       <div class="cgptiq-body">
@@ -305,7 +347,7 @@ window.CGPTIQ = window.CGPTIQ || {};
     document.querySelector("#cgptiq-start").addEventListener("click", async () => {
       const settings = getSettingsFromPanel();
       await saveSettings(settings);
-      queue.runQueue(settings, { setStatus, updateButtons });
+      queue.runQueue(settings, { setStatus, updateButtons, updateProgress, playCompleteSound });
     });
     document.querySelector("#cgptiq-pause").addEventListener("click", () => {
       queue.pauseOrResume();
@@ -317,10 +359,20 @@ window.CGPTIQ = window.CGPTIQ || {};
     });
     document.querySelector("#cgptiq-collapse").addEventListener("click", () => {
       panel.classList.toggle("cgptiq-collapsed");
+      updateCollapseButton();
     });
     document.querySelector("#cgptiq-close").addEventListener("click", () => {
       panel.remove();
     });
+  }
+
+  function updateCollapseButton() {
+    const panel = document.getElementById(panelId);
+    const button = document.querySelector("#cgptiq-collapse");
+    if (!panel || !button) return;
+    const collapsed = panel.classList.contains("cgptiq-collapsed");
+    button.textContent = collapsed ? "Mở" : "Thu";
+    button.title = collapsed ? "Mở rộng panel" : "Thu gọn";
   }
 
   function updateImageSummary() {
@@ -382,6 +434,7 @@ window.CGPTIQ = window.CGPTIQ || {};
     fillSettings(settings);
     bindPanelEvents(panel);
     enableDrag(panel);
+    updateProgress({ current: 0, total: 0, label: "Chưa chạy" });
   }
 
   function togglePanel() {
@@ -395,6 +448,7 @@ window.CGPTIQ = window.CGPTIQ || {};
     getSettingsFromPanel,
     setStatus,
     togglePanel,
+    updateProgress,
     updateButtons
   };
 })();

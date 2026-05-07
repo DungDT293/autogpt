@@ -62,6 +62,11 @@ window.CGPTIQ = window.CGPTIQ || {};
     state.index = Math.min(settings.startIndex - 1, prompts.length - 1);
     state.total = prompts.length;
     callbacks.updateButtons();
+    callbacks.updateProgress?.({
+      current: state.index,
+      total: prompts.length,
+      label: `Sẵn sàng chạy từ ${state.index + 1}/${prompts.length}.`
+    });
 
     try {
       const imageModeReady = await ensureImageMode();
@@ -90,6 +95,11 @@ window.CGPTIQ = window.CGPTIQ || {};
         if (state.stop) break;
 
         state.index = i;
+        callbacks.updateProgress?.({
+          current: i,
+          total: prompts.length,
+          label: `Đang xử lý ${i + 1}/${prompts.length}.`
+        });
         const uploadResult = await images.uploadForPrompt(i);
         if (uploadResult.uploaded) {
           callbacks.setStatus(`Đã tải ảnh cho lệnh ${i + 1}: ${uploadResult.name}`);
@@ -101,6 +111,11 @@ window.CGPTIQ = window.CGPTIQ || {};
         const prompt = applyImageInstruction(buildPrompt(prompts[i], settings), uploadResult);
         callbacks.setStatus(`Đang gửi ${i + 1}/${prompts.length}:\n${prompt}`);
         await submitPrompt(prompt, { skipImageMode: uploadResult.uploaded });
+        callbacks.updateProgress?.({
+          current: i + 1,
+          total: prompts.length,
+          label: `Đã gửi ${i + 1}/${prompts.length}.`
+        });
 
         if (i < prompts.length - 1) {
           callbacks.setStatus(`Đã gửi ${i + 1}/${prompts.length}. Chờ ${settings.delaySeconds}s trước prompt tiếp theo.`);
@@ -108,7 +123,14 @@ window.CGPTIQ = window.CGPTIQ || {};
         }
       }
 
-      callbacks.setStatus(state.stop ? `Đã dừng tại ${state.index + 1}/${prompts.length}.` : "Hoàn tất hàng đợi.");
+      const completed = !state.stop;
+      callbacks.setStatus(completed ? "Hoàn tất hàng đợi." : `Đã dừng tại ${state.index + 1}/${prompts.length}.`);
+      callbacks.updateProgress?.({
+        current: completed ? prompts.length : state.index + 1,
+        total: prompts.length,
+        label: completed ? "Hoàn tất." : `Đã dừng tại ${state.index + 1}/${prompts.length}.`
+      });
+      if (completed) callbacks.playCompleteSound?.();
     } catch (error) {
       callbacks.setStatus(`Lỗi: ${error.message}`);
     } finally {

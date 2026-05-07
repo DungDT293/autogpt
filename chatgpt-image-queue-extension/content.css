@@ -20,6 +20,14 @@
   display: none;
 }
 
+#cgptiq-panel.cgptiq-collapsed {
+  width: min(430px, calc(100vw - 36px));
+}
+
+#cgptiq-panel.cgptiq-collapsed .cgptiq-mini-progress {
+  display: grid;
+}
+
 .cgptiq-header {
   display: flex;
   align-items: center;
@@ -39,6 +47,44 @@
 .cgptiq-header-actions {
   display: flex;
   gap: 6px;
+}
+
+#cgptiq-panel .cgptiq-header-button {
+  min-height: 28px;
+  min-width: 42px;
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.cgptiq-mini-progress {
+  display: none;
+  gap: 6px;
+  padding: 9px 12px 11px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cgptiq-mini-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #c5c5d2;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.cgptiq-mini-progress-track {
+  height: 7px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+
+.cgptiq-mini-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: #10a37f;
+  border-radius: inherit;
+  transition: width 180ms ease;
 }
 
 .cgptiq-body {

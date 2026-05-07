@@ -10,6 +10,7 @@ Chrome extension Manifest V3 để nhập nhiều prompt tạo ảnh trên ChatG
 - `0.3.1`: cải thiện upload folder theo thứ tự, chờ ảnh attach vào composer và tự thêm chỉ dẫn dùng ảnh vừa tải lên vào prompt.
 - `0.3.2`: đồng nhất câu dẫn ảnh giữa chế độ 1 ảnh và folder, tránh đưa tên file vào prompt.
 - `0.3.3`: đổi tên extension thành `AutoGPT by Leon`.
+- `0.3.4`: cải thiện nút thu gọn/ẩn panel, thêm progress khi thu gọn và âm báo hoàn tất khoảng 3 giây.
 
 ## Cài đặt
 
